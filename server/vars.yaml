@@ -2,8 +2,10 @@
 # Réseau
 dhcp_start: "192.168.20.100"
 dhcp_end: "192.168.20.200"
-gateway: "192.168.20.1"
+dhcp_interface: "ens36"
 dns: "8.8.8.8"
+netmask: "255.255.255.0"
+network: "192.168.20.0"
 
 # Utilisateurs Samba
 samba_users:

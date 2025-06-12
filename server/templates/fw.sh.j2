@@ -1,11 +1,4 @@
 #!/bin/bash
-# Script firewall - Généré par Ansible
-
-# Reset
-iptables -F
-iptables -X
-iptables -t nat -F
-iptables -t nat -X
 
 # Politique par défaut
 iptables -P INPUT DROP
@@ -15,14 +8,11 @@ iptables -P OUTPUT ACCEPT
 # Loopback
 iptables -A INPUT -i lo -j ACCEPT
 
-# Connexions établies
-iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
-
 # DHCP
 iptables -A INPUT -p udp --dport 67:68 --sport 67:68 -j ACCEPT
 
 # Samba
-iptables -A INPUT -p tcp --dport 139 -j ACCEPT
+iptables -A INPUT -p tcp --dport 137:139 -j ACCEPT
 iptables -A INPUT -p tcp --dport 445 -j ACCEPT
 iptables -A INPUT -p udp --dport 137:138 -j ACCEPT
 
@@ -32,7 +22,7 @@ iptables -A INPUT -p tcp -s 192.168.20.50 --dport 22 -j ACCEPT
 # Ping
 iptables -A INPUT -p icmp --icmp-type echo-request -j ACCEPT
 
-# Log des paquets rejetés
+# Journalisation
 iptables -A INPUT -j LOG --log-prefix "iptables-deny: " --log-level 4
 
 # Sauvegarde des règles

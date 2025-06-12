@@ -1,11 +1,11 @@
-# Configuration DHCP - Générée par Ansible
+interface {{ dhcp_interface }};
+
 default-lease-time 600;
 max-lease-time 7200;
 authoritative;
 
-subnet 192.168.20.0 netmask 255.255.255.0 {
+subnet {{ network }} netmask {{ netmask }} {
     range {{ dhcp_start }} {{ dhcp_end }};
-    option routers {{ gateway }};
     option domain-name-servers {{ dns }};
     option domain-name "entreprise.local";
 }
