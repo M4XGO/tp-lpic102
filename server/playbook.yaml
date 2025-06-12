@@ -3,7 +3,7 @@
   hosts: servers
   become: true
   vars_files:
-    - vars.yml
+    - vars.yaml
     
   tasks:
     # === PRÉPARATION ===
@@ -19,18 +19,24 @@
           - samba
           - samba-common-bin
           - iptables-persistent
-          - nginx              # BONUS: Serveur web intranet
-          - rsync              # BONUS: Sauvegarde optimisée
-          - cron               # BONUS: Planification sauvegarde
+          - nginx
+          - rsync
+          - cron
         state: present
 
     # === DHCP ===
-    - name: Configuration DHCP
+    - name: Configuration du fichier par défaut DHCP
+      lineinfile:
+        path: /etc/default/isc-dhcp-server
+        regexp: '^#?INTERFACESv4='
+        line: 'INTERFACESv4="{{ dhcp_interface }}"'
+        create: yes
+
+    - name: Configuration DHCP principale
       template:
         src: templates/dhcp.conf.j2
         dest: /etc/dhcp/dhcpd.conf
         backup: yes
-      notify: restart dhcp
 
     - name: Activation du service DHCP
       systemd:
@@ -62,13 +68,20 @@
         backup: yes
       notify: restart samba
 
-    - name: Création des utilisateurs Samba
+    - name: Création des utilisateurs système et Samba
       shell: |
-        useradd -M -s /usr/sbin/nologin {{ item.name }} || true
-        {% if item.groups %}usermod -a -G {{ item.groups }} {{ item.name }}{% endif %}
-        echo -e "{{ item.password }}\n{{ item.password }}" | smbpasswd -a -s {{ item.name }}
+        # Créer utilisateur système s'il n'existe pas
+        if ! id {{ item.name }} &>/dev/null; then
+          useradd -M -s /usr/sbin/nologin {{ item.name }}
+        fi
+        {% if item.groups and item.groups != '' %}
+        # Ajouter au groupe si spécifié
+        usermod -a -G {{ item.groups }} {{ item.name }}
+        {% endif %}
+        # Gérer utilisateur Samba (supprimer puis recréer pour éviter les conflits)
+        smbpasswd -x {{ item.name }} 2>/dev/null || true
+        (echo "{{ item.password }}"; echo "{{ item.password }}") | smbpasswd -a -s {{ item.name }}
       loop: "{{ samba_users }}"
-      no_log: true
 
     # === FIREWALL ===
     - name: Création du script firewall
@@ -80,7 +93,7 @@
     - name: Application du firewall
       shell: /opt/firewall.sh
 
-    # === BONUS: NGINX INTRANET ===
+    # === NGINX INTRANET ===
     - name: Création du répertoire web intranet
       file:
         path: /var/www/intranet
@@ -93,20 +106,18 @@
       template:
         src: templates/nginx-intranet.conf.j2
         dest: /etc/nginx/sites-available/intranet
-      notify: restart nginx
 
     - name: Activation du site intranet
       file:
         src: /etc/nginx/sites-available/intranet
         dest: /etc/nginx/sites-enabled/intranet
         state: link
-      notify: restart nginx
+        force: yes
 
     - name: Désactivation du site par défaut nginx
       file:
         path: /etc/nginx/sites-enabled/default
         state: absent
-      notify: restart nginx
 
     - name: Création de la page d'accueil intranet
       template:
@@ -116,22 +127,18 @@
         group: www-data
         mode: '0644'
 
-    # === BONUS: SAUVEGARDE AUTOMATIQUE ===
+    # === SAUVEGARDE AUTOMATIQUE ===
     - name: Création du répertoire de sauvegarde
       file:
         path: /backup
         state: directory
         mode: '0750'
-        owner: root
-        group: root
 
     - name: Création du script de sauvegarde
       template:
         src: templates/backup.sh.j2
         dest: /opt/backup.sh
         mode: '0755'
-        owner: root
-        group: root
 
     - name: Configuration cron pour sauvegarde quotidienne
       cron:
@@ -141,8 +148,8 @@
         job: "/opt/backup.sh"
         user: root
 
-    # === VÉRIFICATIONS ===
-    - name: Vérification des services
+    # === DÉMARRAGE DES SERVICES ===
+    - name: Démarrage des services
       systemd:
         name: "{{ item }}"
         state: started
@@ -152,26 +159,18 @@
         - smbd
         - nmbd
         - nginx
+      ignore_errors: true
 
-  handlers:
-    - name: restart dhcp
-      systemd:
-        name: isc-dhcp-server
-        state: restarted
-
-    - name: restart samba
-      systemd:
-        name: smbd
-        state: restarted
-      listen: restart samba
-      
-    - name: restart nmbd
-      systemd:
-        name: nmbd
-        state: restarted
-      listen: restart samba
-
-    - name: restart nginx
+    - name: Redémarrage de nginx pour appliquer la configuration intranet
       systemd:
         name: nginx
         state: restarted
+
+  handlers:
+    - name: restart samba
+      systemd:
+        name: "{{ item }}"
+        state: restarted
+      loop:
+        - smbd
+        - nmbd
