@@ -19,12 +19,15 @@
           - samba
           - samba-common-bin
           - iptables-persistent
+          - nginx              # BONUS: Serveur web intranet
+          - rsync              # BONUS: Sauvegarde optimisée
+          - cron               # BONUS: Planification sauvegarde
         state: present
 
     # === DHCP ===
     - name: Configuration DHCP
       template:
-        src: templates/dhcpd.conf.j2
+        src: templates/dhcp.conf.j2
         dest: /etc/dhcp/dhcpd.conf
         backup: yes
       notify: restart dhcp
@@ -77,15 +80,78 @@
     - name: Application du firewall
       shell: /opt/firewall.sh
 
+    # === BONUS: NGINX INTRANET ===
+    - name: Création du répertoire web intranet
+      file:
+        path: /var/www/intranet
+        state: directory
+        mode: '0755'
+        owner: www-data
+        group: www-data
+
+    - name: Configuration nginx intranet
+      template:
+        src: templates/nginx-intranet.conf.j2
+        dest: /etc/nginx/sites-available/intranet
+      notify: restart nginx
+
+    - name: Activation du site intranet
+      file:
+        src: /etc/nginx/sites-available/intranet
+        dest: /etc/nginx/sites-enabled/intranet
+        state: link
+      notify: restart nginx
+
+    - name: Désactivation du site par défaut nginx
+      file:
+        path: /etc/nginx/sites-enabled/default
+        state: absent
+      notify: restart nginx
+
+    - name: Création de la page d'accueil intranet
+      template:
+        src: templates/intranet-index.html.j2
+        dest: /var/www/intranet/index.html
+        owner: www-data
+        group: www-data
+        mode: '0644'
+
+    # === BONUS: SAUVEGARDE AUTOMATIQUE ===
+    - name: Création du répertoire de sauvegarde
+      file:
+        path: /backup
+        state: directory
+        mode: '0750'
+        owner: root
+        group: root
+
+    - name: Création du script de sauvegarde
+      template:
+        src: templates/backup.sh.j2
+        dest: /opt/backup.sh
+        mode: '0755'
+        owner: root
+        group: root
+
+    - name: Configuration cron pour sauvegarde quotidienne
+      cron:
+        name: "Sauvegarde quotidienne Samba"
+        minute: "0"
+        hour: "2"
+        job: "/opt/backup.sh"
+        user: root
+
     # === VÉRIFICATIONS ===
     - name: Vérification des services
       systemd:
         name: "{{ item }}"
         state: started
+        enabled: yes
       loop:
         - isc-dhcp-server
         - smbd
         - nmbd
+        - nginx
 
   handlers:
     - name: restart dhcp
@@ -104,3 +170,8 @@
         name: nmbd
         state: restarted
       listen: restart samba
+
+    - name: restart nginx
+      systemd:
+        name: nginx
+        state: restarted
