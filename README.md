@@ -352,6 +352,8 @@ sudo mount -t cifs //IP_SERVEUR/public /mnt -o guest
 # Windows : accéder à \\IP_SERVEUR\public
 # Intranet : http://IP_SERVEUR dans navigateur
 ```
+![dhcp client windows](https://github.com/user-attachments/assets/bffe5466-46f6-4901-a034-1590b9a3f441)
+
 
 ### Vérification des bonus
 
@@ -367,6 +369,14 @@ sudo mount -t cifs //IP_SERVEUR/public /mnt -o guest
 'systemctl status nginx'
 'curl http://172.20.10.4
 ```
+![image](https://github.com/user-attachments/assets/9c0d5f7d-6829-4c3f-bfe0-71155c1c4514)
+
+
+![image](https://github.com/user-attachments/assets/848c757d-4504-4259-ba0b-ee269efbd996)
+
+
+![image](https://github.com/user-attachments/assets/65f18e7c-2c6b-4574-a1d7-f2628423dce9)
+
 
 ## Détails techniques
 
