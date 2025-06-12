@@ -38,7 +38,7 @@ if [[ $REPLY =~ ^[Yy]$ ]]; then
     echo "Déploiement terminé !"
     echo "Services configurés :"
     echo "   DHCP : 192.168.20.100-200"
-    echo "   Samba : //$(ansible servers -m setup -a 'filter=ansible_default_ipv4' | grep address | cut -d'"' -f4)"
+    echo "   Samba : //$(ansible servers -m setup -a 'filter=web_server' | grep address | cut -d'"' -f4)"
     echo "   Firewall : Activé"
     echo ""
     echo "Tests rapides :"

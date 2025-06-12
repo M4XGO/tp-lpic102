@@ -1,2 +1,2 @@
 [servers]
-srv ansible_host=172.20.10.4 ansible_user=debian
+srv ansible_host=172.20.10.4 ansible_user=debian ansible_ssh_pass=GR5! 

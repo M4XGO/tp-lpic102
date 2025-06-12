@@ -6,6 +6,8 @@ dhcp_interface: "ens36"
 dns: "8.8.8.8"
 netmask: "255.255.255.0"
 network: "192.168.20.0"
+web_server: "192.168.20.1"
+gateway: "192.168.20.1"
 
 # Utilisateurs Samba
 samba_users:
