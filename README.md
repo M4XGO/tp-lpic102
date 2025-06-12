@@ -19,12 +19,12 @@ L'ensemble est déployé automatiquement via **Ansible** pour un provisionnement
 
 ```mermaid
 graph TB
-    subgraph "Serveur Linux Multifonction"
+    subgraph "Serveur Linux Multifonction<br/>IP: 192.168.20.1 (Passerelle)"
         subgraph "Services"
-            DHCP["DHCP Server<br/>Pool: 192.168.20.100-200"]
-            SAMBA["Samba Server<br/>SMB/CIFS"]
-            SSH["SSH Server<br/>Port 22"]
-            NGINX["Nginx Intranet<br/>Port 80"]
+            DHCP["DHCP Server<br/>Interface: 192.168.20.1<br/>Pool: 192.168.20.100-200<br/>DNS: 8.8.8.8"]
+            SAMBA["Samba Server<br/>SMB/CIFS<br/>IP: 192.168.20.1"]
+            SSH["SSH Server<br/>Port 22<br/>IP: 192.168.20.1"]
+            NGINX["Nginx Intranet<br/>Port 80<br/>IP: 192.168.20.1"]
         end
         
         subgraph "Sécurité"
@@ -46,15 +46,26 @@ graph TB
         end
     end
     
-    subgraph "Clients"
-        LINUX["Clients Linux"]
-        WINDOWS["Clients Windows"]
-        ADMIN["Admin<br/>192.168.20.50"]
+    subgraph "Réseau 192.168.20.0/24"
+        subgraph "Clients DHCP (192.168.20.100-200)"
+            LINUX["Clients Linux<br/>IP: Pool DHCP"]
+            WINDOWS["Clients Windows<br/>IP: Pool DHCP"]
+        end
+        
+        subgraph "IP Fixes"
+            ADMIN["Admin<br/>IP: 192.168.20.50"]
+            GATEWAY["Passerelle<br/>IP: 192.168.20.1"]
+        end
+        
+        subgraph "DNS Externe"
+            DNS["DNS Google<br/>IP: 8.8.8.8"]
+        end
     end
     
     %% Connexions services
     DHCP --> LINUX
     DHCP --> WINDOWS
+    DHCP -.->|Utilise| DNS
     
     SAMBA --> PUBLIC
     SAMBA --> COMPTA
@@ -65,6 +76,11 @@ graph TB
     NGINX --> LINUX
     NGINX --> WINDOWS
     NGINX --> ADMIN
+    
+    %% Connexions réseau
+    GATEWAY -.->|Route vers| DNS
+    LINUX -.->|Via| GATEWAY
+    WINDOWS -.->|Via| GATEWAY
     
     IPTABLES -.->|Protège| DHCP
     IPTABLES -.->|Protège| SAMBA
@@ -89,7 +105,8 @@ graph TB
     class IPTABLES security
     class PUBLIC,COMPTA,BACKUP storage
     class DHCP_CONF,SAMBA_CONF,FW_SCRIPT,BACKUP_SCRIPT,NGINX_CONF config
-    class LINUX,WINDOWS,ADMIN client
+    class LINUX,WINDOWS,ADMIN,GATEWAY client
+    class DNS service
 ```
 
 ## Architecture technique
