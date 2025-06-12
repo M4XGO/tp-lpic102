@@ -384,7 +384,7 @@ Le déploiement utilise :
 # Politique firewall (extraits)
 iptables -P INPUT DROP          # Deny by default
 iptables -A INPUT -i lo -j ACCEPT                    # Loopback OK
-#iptables -A INPUT -p tcp -s 192.168.20.50 --dport 22 -j ACCEPT  # SSH admin only
+iptables -A INPUT -p tcp -s 192.168.20.50 --dport 22 -j ACCEPT  # SSH only
 iptables -A INPUT -p tcp --dport 445 -j ACCEPT      # Samba
 iptables -A INPUT -p udp --dport 67:68 -j ACCEPT    # DHCP
 iptables -A INPUT -p tcp -s 192.168.20.0/24 --dport 80 -j ACCEPT # HTTP local
