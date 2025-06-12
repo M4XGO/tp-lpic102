@@ -6,6 +6,7 @@ authoritative;
 
 subnet {{ network }} netmask {{ netmask }} {
     range {{ dhcp_start }} {{ dhcp_end }};
+    option routers {{ gateway }};
     option domain-name-servers {{ dns }};
     option domain-name "entreprise.local";
 }

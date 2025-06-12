@@ -39,8 +39,8 @@
                 <h2>Serveur Samba</h2>
                 <div class="info">
                     <span class="status online"></span><strong>Service actif</strong><br>
-                    Partage public : <code>\\{{ ansible_default_ipv4.address }}\public</code><br>
-                    Partage compta : <code>\\{{ ansible_default_ipv4.address }}\compta</code><br>
+                    Partage public : <code>\\{{ web_server }}\public</code><br>
+                    Partage compta : <code>\\{{ web_server }}\compta</code><br>
                     Groupe autorisé compta : Utilisateurs du groupe 'compta'
                 </div>
             </div>
@@ -70,7 +70,7 @@
             <h2>Informations système</h2>
             <div class="info">
                 <strong>Serveur :</strong> {{ ansible_hostname }}<br>
-                <strong>Adresse IP :</strong> {{ ansible_default_ipv4.address }}<br>
+                <strong>Adresse IP :</strong> {{ web_server }}<br>
                 <strong>OS :</strong> {{ ansible_distribution }} {{ ansible_distribution_version }}<br>
                 <strong>Temps de fonctionnement :</strong> <span id="uptime">Chargement...</span><br>
                 <strong>Dernière mise à jour :</strong> {{ ansible_date_time.date }}

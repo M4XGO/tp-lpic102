@@ -1,6 +1,6 @@
 server {
     listen 80;
-    server_name {{ ansible_default_ipv4.address }} localhost;
+    server_name {{ web_server }} localhost;
     root /var/www/intranet;
     index index.html index.php;
 
