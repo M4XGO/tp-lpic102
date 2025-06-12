@@ -21,18 +21,18 @@ echo "Connectivité OK"
 
 # Vérification syntaxe
 echo "Vérification de la syntaxe..."
-ansible-playbook playbook.yml --syntax-check
+ansible-playbook playbook.yaml --syntax-check
 
 # Dry run
 echo "Simulation du déploiement..."
-ansible-playbook playbook.yml --check
+ansible-playbook playbook.yaml --check
 
 # Confirmation
 read -p "Lancer le déploiement réel ? (y/N) " -n 1 -r
 echo
 if [[ $REPLY =~ ^[Yy]$ ]]; then
     echo "Déploiement en cours..."
-    ansible-playbook playbook.yml
+    ansible-playbook playbook.yaml
     
     echo ""
     echo "Déploiement terminé !"
