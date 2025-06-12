@@ -1,0 +1,15 @@
+---
+# Réseau
+dhcp_start: "192.168.20.100"
+dhcp_end: "192.168.20.200"
+gateway: "192.168.20.1"
+dns: "8.8.8.8"
+
+# Utilisateurs Samba
+samba_users:
+  - { name: "admin", password: "AdminPass123", groups: "compta" }
+  - { name: "user1", password: "UserPass123", groups: "" }
+
+# Répertoires
+public_dir: "/srv/public"
+compta_dir: "/srv/compta"

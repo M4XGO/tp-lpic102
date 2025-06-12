@@ -1,0 +1,25 @@
+[global]
+   workgroup = WORKGROUP
+   server string = Serveur Samba LPIC-2
+   netbios name = SRVLPIC2
+   security = user
+   map to guest = bad user
+   dns proxy = no
+
+[{{ public_dir | basename }}]
+   comment = Partage Public
+   path = {{ public_dir }}
+   browsable = yes
+   writable = yes
+   guest ok = yes
+   read only = no
+   create mask = 0755
+
+[{{ compta_dir | basename }}]
+   comment = Partage Comptabilité
+   path = {{ compta_dir }}
+   browsable = yes
+   writable = yes
+   valid users = @compta
+   read only = no
+   create mask = 0750
