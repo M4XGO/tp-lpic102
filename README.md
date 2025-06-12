@@ -51,11 +51,11 @@ graph TB
     SAMBA_CONF -.->|Configure| SAMBA
     FW_SCRIPT -.->|Configure| IPTABLES
     
-    classDef service fill:#e3f2fd,stroke:#1976d2,stroke-width:2px
-    classDef security fill:#ffebee,stroke:#d32f2f,stroke-width:2px
-    classDef storage fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
-    classDef config fill:#e8f5e8,stroke:#388e3c,stroke-width:2px
-    classDef client fill:#fff8e1,stroke:#f57c00,stroke-width:2px
+    classDef service fill:#f8f9fa,stroke:#495057,stroke-width:2px
+    classDef security fill:#fff5f5,stroke:#dc3545,stroke-width:2px
+    classDef storage fill:#f8f9fa,stroke:#6c757d,stroke-width:2px
+    classDef config fill:#f8f9fa,stroke:#28a745,stroke-width:2px
+    classDef client fill:#fff9e6,stroke:#fd7e14,stroke-width:2px
     
     class DHCP,SAMBA,SSH service
     class IPTABLES security
