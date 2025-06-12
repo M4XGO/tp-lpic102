@@ -137,7 +137,7 @@ Réseau principal : 192.168.20.0/24
 ### Livrables requis
 
 #### 1. **Schéma réseau avec plan d'adressage**
-> Voir diagramme Mermaid ci-dessus avec architecture complète [https://github.com/M4XGO/tp-lpic102/blob/main/README.md#sch%C3%A9ma-dinfrastructure]
+> Voir diagramme Mermaid ci-dessus avec architecture complète[https://github.com/M4XGO/tp-lpic102/blob/main/README.md#sch%C3%A9ma-dinfrastructure]
 
 #### 2. **Fichiers de configuration DHCP et Samba**
 
