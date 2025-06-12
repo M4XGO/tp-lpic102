@@ -128,7 +128,6 @@ graph TB
 Réseau principal : 192.168.20.0/24
 ├── Passerelle     : 192.168.20.1
 ├── Pool DHCP      : 192.168.20.100-200
-├── Admin réservé  : 192.168.20.50
 └── DNS            : 8.8.8.8
 ```
 
@@ -137,7 +136,7 @@ Réseau principal : 192.168.20.0/24
 ### Livrables requis
 
 #### 1. **Schéma réseau avec plan d'adressage**
-> [Voir diagramme Mermaid ci-dessus avec architecture complète](https://github.com/M4XGO/tp-lpic102/blob/main/README.md#sch%C3%A9ma-dinfrastructure)
+> Voir diagramme Mermaid ci-dessus avec architecture complète
 
 #### 2. **Fichiers de configuration DHCP et Samba**
 
@@ -151,6 +150,7 @@ authoritative;
 
 subnet 192.168.20.0 netmask 255.255.255.0 {
     range 192.168.20.100 192.168.20.200;
+    option routers {{ gateway }};
     option domain-name-servers 8.8.8.8;
     option domain-name "entreprise.local";
 }
@@ -340,24 +340,6 @@ tp-lpic102/
 
 ## Tests et validation
 
-### Vérification des services
-
-```bash
-# Statut des services
-ansible servers -m shell -a 'systemctl status isc-dhcp-server'
-ansible servers -m shell -a 'systemctl status smbd'
-ansible servers -m shell -a 'systemctl status nginx'
-
-# Test Samba
-ansible servers -m shell -a 'smbclient -L localhost -U guest%'
-
-# Vérification firewall
-ansible servers -m shell -a 'iptables -L INPUT -n'
-
-# Test intranet
-curl http://IP_SERVEUR
-```
-
 ### Tests côté client
 
 ```bash
@@ -375,14 +357,15 @@ sudo mount -t cifs //IP_SERVEUR/public /mnt -o guest
 
 ```bash
 # Sauvegarde automatique
-ansible servers -m shell -a 'ls -la /backup/'
-ansible servers -m shell -a 'crontab -l | grep backup'
+'ls -la /backup/'
+'crontab -l | grep backup'
 
 # Persistance firewall
-ansible servers -m shell -a 'ls -la /etc/iptables/rules.v4'
+'ls -la /etc/iptables/rules.v4'
 
 # Intranet
-ansible servers -m shell -a 'systemctl status nginx'
+'systemctl status nginx'
+'curl http://172.20.10.4
 ```
 
 ## Détails techniques
@@ -401,7 +384,7 @@ Le déploiement utilise :
 # Politique firewall (extraits)
 iptables -P INPUT DROP          # Deny by default
 iptables -A INPUT -i lo -j ACCEPT                    # Loopback OK
-iptables -A INPUT -p tcp -s 192.168.20.50 --dport 22 -j ACCEPT  # SSH admin only
+#iptables -A INPUT -p tcp -s 192.168.20.50 --dport 22 -j ACCEPT  # SSH admin only
 iptables -A INPUT -p tcp --dport 445 -j ACCEPT      # Samba
 iptables -A INPUT -p udp --dport 67:68 -j ACCEPT    # DHCP
 iptables -A INPUT -p tcp -s 192.168.20.0/24 --dport 80 -j ACCEPT # HTTP local
@@ -413,30 +396,6 @@ iptables -A INPUT -p tcp -s 192.168.20.0/24 --dport 80 -j ACCEPT # HTTP local
 |---------|--------|-------------|-------------|
 | `public` | `/srv/public` | Lecture/Écriture tous | Partage général |
 | `compta` | `/srv/compta` | Groupe `compta` uniquement | Documents sensibles |
-
-### Sauvegarde automatique
-
-- **Fréquence** : Quotidienne à 2h00 du matin
-- **Contenu** : Données des partages Samba (/srv/public et /srv/compta)
-- **Méthode** : Synchronisation rsync optimisée
-- **Avantage** : Ne copie que les fichiers nouveaux/modifiés
-
-## Objectifs pédagogiques atteints
-
-- Configuration DHCP : Pool dynamique + DNS
-- Serveur Samba : Multi-plateforme avec permissions
-- Script iptables : Pare-feu automatisé sécurisé et commenté
-- Automatisation : Déploiement Ansible reproductible
-- Documentation : Infrastructure as Code documentée
-- Bonus : Intranet, sauvegarde, persistance firewall
-
-## Extensions possibles
-
-- **Monitoring** : Nagios/Zabbix pour supervision avancée
-- **SSL/TLS** : Chiffrement des communications Samba
-- **LDAP** : Authentification centralisée
-- **VPN** : Accès distant sécurisé
-- **Load Balancing** : Haute disponibilité
 
 ## Support
 
@@ -451,4 +410,3 @@ En cas de problème :
 
 ---
 
-> **Note** : Ce projet respecte les bonnes pratiques LPIC-2 et peut servir de base pour un environnement de production avec adaptations sécuritaires supplémentaires.
