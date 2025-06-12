@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Intranet PME - Serveur LPIC-2</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .header { text-align: center; margin-bottom: 40px; }
+        .card { background: rgba(255,255,255,0.1); border-radius: 10px; padding: 20px; margin: 20px 0; backdrop-filter: blur(10px); }
+        .services { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+        .status { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 10px; }
+        .online { background-color: #4CAF50; }
+        .info { background: rgba(255,255,255,0.2); padding: 15px; border-radius: 5px; margin: 10px 0; }
+        h1, h2 { margin-top: 0; }
+        .footer { text-align: center; margin-top: 40px; opacity: 0.8; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Intranet PME</h1>
+            <p>Serveur Linux Multifonction - Infrastructure LPIC-2</p>
+        </div>
+
+        <div class="services">
+            <div class="card">
+                <h2>Serveur DHCP</h2>
+                <div class="info">
+                    <span class="status online"></span><strong>Service actif</strong><br>
+                    Pool IP : {{ dhcp_start }} - {{ dhcp_end }}<br>
+                    Passerelle : {{ gateway | default('192.168.20.1') }}<br>
+                    DNS : {{ dns }}
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Serveur Samba</h2>
+                <div class="info">
+                    <span class="status online"></span><strong>Service actif</strong><br>
+                    Partage public : <code>\\{{ ansible_default_ipv4.address }}\public</code><br>
+                    Partage compta : <code>\\{{ ansible_default_ipv4.address }}\compta</code><br>
+                    Groupe autorisé compta : Utilisateurs du groupe 'compta'
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Firewall</h2>
+                <div class="info">
+                    <span class="status online"></span><strong>Service actif</strong><br>
+                    Politique : DROP par défaut<br>
+                    Ports ouverts : DHCP (67-68), Samba (137-139,445), SSH (22)<br>
+                    SSH restreint à l'admin (192.168.20.50)
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Sauvegarde</h2>
+                <div class="info">
+                    <span class="status online"></span><strong>Automatique</strong><br>
+                    Fréquence : Quotidienne (cron)<br>
+                    Destination : /backup/<br>
+                    Rétention : 7 jours
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Informations système</h2>
+            <div class="info">
+                <strong>Serveur :</strong> {{ ansible_hostname }}<br>
+                <strong>Adresse IP :</strong> {{ ansible_default_ipv4.address }}<br>
+                <strong>OS :</strong> {{ ansible_distribution }} {{ ansible_distribution_version }}<br>
+                <strong>Temps de fonctionnement :</strong> <span id="uptime">Chargement...</span><br>
+                <strong>Dernière mise à jour :</strong> {{ ansible_date_time.date }}
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>Projet LPIC-2 - Infrastructure Réseau Sécurisée</p>
+            <p>Déployé automatiquement avec Ansible</p>
+        </div>
+    </div>
+
+    <script>
+        // Mise à jour de l'uptime en temps réel
+        function updateUptime() {
+            fetch('/api/uptime')
+                .then(response => response.text())
+                .then(data => document.getElementById('uptime').textContent = data)
+                .catch(() => document.getElementById('uptime').textContent = 'Non disponible');
+        }
+        
+        // Mise à jour toutes les 30 secondes
+        setInterval(updateUptime, 30000);
+        updateUptime();
+    </script>
+</body>
+</html> 

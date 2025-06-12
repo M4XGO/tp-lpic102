@@ -1,0 +1,14 @@
+#!/bin/bash
+# Script de sauvegarde simple - Données Samba avec rsync
+# Sauvegarde optimisée (ne copie que les fichiers modifiés)
+
+BACKUP_DIR="/backup"
+
+# Création du répertoire de backup
+mkdir -p $BACKUP_DIR
+
+# Sauvegarde optimisée avec rsync
+rsync -av --delete {{ public_dir }}/ $BACKUP_DIR/public/
+rsync -av --delete {{ compta_dir }}/ $BACKUP_DIR/compta/
+
+echo "Sauvegarde rsync terminée" 

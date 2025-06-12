@@ -1,0 +1,111 @@
+#!/bin/bash
+# ===================================================================
+# Script de configuration firewall iptables - LPIC-2
+# Objectif : Sécuriser un serveur multifonction (DHCP + Samba + SSH)
+# Politique : Deny by default - N'autoriser que les services nécessaires
+# ===================================================================
+
+echo "Configuration du firewall iptables..."
+
+# ===================================================================
+# 1. REMISE À ZÉRO DES RÈGLES EXISTANTES
+# ===================================================================
+iptables -F                     # Flush (vider) toutes les règles
+iptables -X                     # Supprimer les chaînes personnalisées
+iptables -t nat -F              # Vider les règles NAT
+iptables -t nat -X              # Supprimer les chaînes NAT
+
+# ===================================================================
+# 2. POLITIQUE PAR DÉFAUT - SÉCURITÉ MAXIMALE
+# ===================================================================
+# DENY ALL : Bloquer tout le trafic entrant et de transit par défaut
+# Seul le trafic sortant est autorisé (pour les mises à jour système)
+iptables -P INPUT DROP          # Bloquer tout trafic entrant
+iptables -P FORWARD DROP        # Bloquer tout trafic de transit (routeur)
+iptables -P OUTPUT ACCEPT       # Autoriser tout trafic sortant
+
+echo "Politique par défaut appliquée : DROP"
+
+# ===================================================================
+# 3. INTERFACE LOOPBACK - COMMUNICATION INTERNE
+# ===================================================================
+# Autoriser la communication locale (127.0.0.1)
+# Nécessaire pour le bon fonctionnement des services système
+iptables -A INPUT -i lo -j ACCEPT
+echo "Interface loopback autorisée"
+
+# ===================================================================
+# 4. SERVEUR DHCP - ATTRIBUTION D'ADRESSES IP
+# ===================================================================
+# Ports 67 (serveur DHCP) et 68 (client DHCP) en UDP
+# Nécessaire pour l'attribution automatique d'IP aux clients
+iptables -A INPUT -p udp --dport 67:68 --sport 67:68 -j ACCEPT
+echo "Service DHCP autorisé (ports 67-68 UDP)"
+
+# ===================================================================
+# 5. SERVEUR SAMBA - PARTAGE DE FICHIERS
+# ===================================================================
+# Ports NetBIOS et SMB/CIFS pour compatibilité Windows/Linux
+# 137-138 UDP : NetBIOS Name Service et Datagram Service
+# 139 TCP : NetBIOS Session Service (ancien protocole)
+# 445 TCP : SMB/CIFS direct (protocole moderne)
+iptables -A INPUT -p tcp --dport 137:139 -j ACCEPT
+iptables -A INPUT -p tcp --dport 445 -j ACCEPT
+iptables -A INPUT -p udp --dport 137:138 -j ACCEPT
+echo "Service Samba autorisé (ports 137-139, 445)"
+
+# ===================================================================
+# 6. SSH - ADMINISTRATION À DISTANCE SÉCURISÉE
+# ===================================================================
+# Accès SSH restreint UNIQUEMENT à l'adresse IP de l'administrateur
+# Principe de moindre privilège : seul l'admin peut se connecter
+iptables -A INPUT -p tcp -s 192.168.20.50 --dport 22 -j ACCEPT
+echo "SSH autorisé depuis l'admin (192.168.20.50 vers port 22)"
+
+# ===================================================================
+# 7. HTTP - SERVEUR INTRANET (BONUS)
+# ===================================================================
+# Autoriser l'accès au serveur web intranet sur le réseau local
+iptables -A INPUT -p tcp -s {{ network }}/{{ netmask }} --dport 80 -j ACCEPT
+echo "HTTP autorisé depuis le réseau local (port 80)"
+
+# ===================================================================
+# 8. ICMP - DIAGNOSTIC RÉSEAU
+# ===================================================================
+# Autoriser les ping pour le diagnostic réseau
+# Type 8 = Echo Request (ping sortant depuis le serveur)
+iptables -A INPUT -p icmp --icmp-type echo-request -j ACCEPT
+echo "Ping (ICMP) autorisé"
+
+# ===================================================================
+# 9. CONNEXIONS ÉTABLIES - OPTIMISATION
+# ===================================================================
+# Autoriser les réponses aux connexions déjà établies
+# Évite de bloquer les réponses légitimes du serveur
+iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
+echo "Connexions établies autorisées"
+
+# ===================================================================
+# 10. JOURNALISATION DES TENTATIVES D'INTRUSION
+# ===================================================================
+# Logger toutes les tentatives de connexion bloquées
+# Aide au diagnostic et à la détection d'intrusions
+iptables -A INPUT -j LOG --log-prefix "FIREWALL-DENY: " --log-level 4
+echo "Journalisation activée"
+
+# ===================================================================
+# 11. SAUVEGARDE PERSISTANTE DES RÈGLES
+# ===================================================================
+# Sauvegarder les règles pour qu'elles survivent au redémarrage
+# Utilise iptables-persistent pour la persistance
+iptables-save > /etc/iptables/rules.v4
+echo "Règles sauvegardées dans /etc/iptables/rules.v4"
+
+echo ""
+echo "Résumé de la configuration firewall :"
+echo "   Politique par défaut : DENY ALL"
+echo "   Services autorisés : DHCP, Samba, SSH (admin), HTTP, ICMP"
+echo "   Journalisation active"
+echo "   Configuration persistante"
+echo ""
+echo "Firewall configuré avec succès !" 

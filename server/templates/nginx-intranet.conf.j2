@@ -1,0 +1,32 @@
+server {
+    listen 80;
+    server_name {{ ansible_default_ipv4.address }} localhost;
+    root /var/www/intranet;
+    index index.html index.php;
+
+    # Configuration de base
+    client_max_body_size 100M;
+    access_log /var/log/nginx/intranet.access.log;
+    error_log /var/log/nginx/intranet.error.log;
+
+    # Page principale
+    location / {
+        try_files $uri $uri/ =404;
+    }
+
+    # Support PHP (si installé)
+    location ~ \.php$ {
+        include snippets/fastcgi-php.conf;
+        fastcgi_pass unix:/var/run/php/php-fpm.sock;
+    }
+
+    # Sécurité - interdire l'accès aux fichiers sensibles
+    location ~ /\. {
+        deny all;
+    }
+
+    location ~* \.(jpg|jpeg|png|gif|ico|css|js)$ {
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+    }
+} 
